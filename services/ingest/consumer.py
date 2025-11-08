@@ -21,6 +21,13 @@ class IngestService:
         self.init_databases()
         
     def init_databases(self):
+        # Initialize connection attributes
+        self.mysql_conn = None
+        self.pg_conn = None
+        self.mongo_client = None
+        self.mongo_db = None
+        self.mongo_collection = None
+        
         # MySQL connection
         max_retries = 10
         retry_count = 0
@@ -38,7 +45,8 @@ class IngestService:
             except Exception as e:
                 retry_count += 1
                 print(f"MySQL connection attempt {retry_count}/{max_retries} failed: {e}")
-                time.sleep(5)
+                if retry_count < max_retries:
+                    time.sleep(5)
         
         # PostgreSQL connection
         retry_count = 0
@@ -55,7 +63,8 @@ class IngestService:
             except Exception as e:
                 retry_count += 1
                 print(f"PostgreSQL connection attempt {retry_count}/{max_retries} failed: {e}")
-                time.sleep(5)
+                if retry_count < max_retries:
+                    time.sleep(5)
         
         # MongoDB connection
         retry_count = 0
@@ -70,53 +79,60 @@ class IngestService:
             except Exception as e:
                 retry_count += 1
                 print(f"MongoDB connection attempt {retry_count}/{max_retries} failed: {e}")
-                time.sleep(5)
+                if retry_count < max_retries:
+                    time.sleep(5)
         
         # Initialize schemas
         self.init_schemas()
     
     def init_schemas(self):
         # MySQL schema
-        try:
-            with self.mysql_conn.cursor() as cursor:
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS documents (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        document_id VARCHAR(255) UNIQUE NOT NULL,
-                        url TEXT NOT NULL,
-                        title TEXT,
-                        description TEXT,
-                        keywords TEXT,
-                        crawl_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        source VARCHAR(255),
-                        INDEX idx_document_id (document_id)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                """)
-                self.mysql_conn.commit()
-                print("MySQL schema initialized")
-        except Exception as e:
-            print(f"Error initializing MySQL schema: {e}")
+        if self.mysql_conn is None:
+            print("Skipping MySQL schema initialization - connection not available")
+        else:
+            try:
+                with self.mysql_conn.cursor() as cursor:
+                    cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS documents (
+                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            document_id VARCHAR(255) UNIQUE NOT NULL,
+                            url TEXT NOT NULL,
+                            title TEXT,
+                            description TEXT,
+                            keywords TEXT,
+                            crawl_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            source VARCHAR(255),
+                            INDEX idx_document_id (document_id)
+                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                    """)
+                    self.mysql_conn.commit()
+                    print("MySQL schema initialized")
+            except Exception as e:
+                print(f"Error initializing MySQL schema: {e}")
         
         # PostgreSQL schema
-        try:
-            with self.pg_conn.cursor() as cursor:
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS inverted_index (
-                        id SERIAL PRIMARY KEY,
-                        token VARCHAR(255) NOT NULL,
-                        document_id VARCHAR(255) NOT NULL,
-                        frequency INT DEFAULT 1,
-                        positions JSONB,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        UNIQUE(token, document_id)
-                    )
-                """)
-                cursor.execute("CREATE INDEX IF NOT EXISTS idx_token ON inverted_index(token)")
-                cursor.execute("CREATE INDEX IF NOT EXISTS idx_document_id ON inverted_index(document_id)")
-                self.pg_conn.commit()
-                print("PostgreSQL schema initialized")
-        except Exception as e:
-            print(f"Error initializing PostgreSQL schema: {e}")
+        if self.pg_conn is None:
+            print("Skipping PostgreSQL schema initialization - connection not available")
+        else:
+            try:
+                with self.pg_conn.cursor() as cursor:
+                    cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS inverted_index (
+                            id SERIAL PRIMARY KEY,
+                            token VARCHAR(255) NOT NULL,
+                            document_id VARCHAR(255) NOT NULL,
+                            frequency INT DEFAULT 1,
+                            positions JSONB,
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            UNIQUE(token, document_id)
+                        )
+                    """)
+                    cursor.execute("CREATE INDEX IF NOT EXISTS idx_token ON inverted_index(token)")
+                    cursor.execute("CREATE INDEX IF NOT EXISTS idx_document_id ON inverted_index(document_id)")
+                    self.pg_conn.commit()
+                    print("PostgreSQL schema initialized")
+            except Exception as e:
+                print(f"Error initializing PostgreSQL schema: {e}")
     
     def tokenize(self, text):
         """Simple tokenization: lowercase, remove punctuation, split by whitespace"""
@@ -129,6 +145,9 @@ class IngestService:
     
     def store_metadata(self, data):
         """Store metadata in MySQL"""
+        if self.mysql_conn is None:
+            print("MySQL connection not available, skipping metadata storage")
+            return
         try:
             with self.mysql_conn.cursor() as cursor:
                 sql = """
@@ -156,6 +175,9 @@ class IngestService:
     
     def store_content(self, data):
         """Store full content in MongoDB"""
+        if self.mongo_collection is None:
+            print("MongoDB connection not available, skipping content storage")
+            return
         try:
             doc = {
                 'document_id': data['document_id'],
@@ -175,6 +197,9 @@ class IngestService:
     
     def store_index(self, data):
         """Store inverted index in PostgreSQL"""
+        if self.pg_conn is None:
+            print("PostgreSQL connection not available, skipping index storage")
+            return
         try:
             # Tokenize title, description, and content
             all_text = f"{data.get('title', '')} {data.get('description', '')} {data.get('content', '')}"
