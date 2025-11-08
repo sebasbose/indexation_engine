@@ -166,7 +166,7 @@ En el mismo archivo, cambia el valor de `CLOSESPIDER_PAGECOUNT`:
 
 ```python
 custom_settings = {
-    'CLOSESPIDER_PAGECOUNT': 500,  # Cambiar este número
+    'CLOSESPIDER_PAGECOUNT': 5000,
 }
 ```
 

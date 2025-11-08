@@ -18,7 +18,7 @@ class WebSpider(scrapy.Spider):
     
     # Límite de páginas a crawlear
     custom_settings = {
-        'CLOSESPIDER_PAGECOUNT': 500,
+        'CLOSESPIDER_PAGECOUNT': 5000,
         'DEPTH_LIMIT': 3,
     }
     
