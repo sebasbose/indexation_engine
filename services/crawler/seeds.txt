@@ -1,0 +1,42 @@
+# Lista de URLs semilla para el crawler
+
+# Wikipedia - Tecnología y Computación
+https://en.wikipedia.org/wiki/Computer_science
+https://en.wikipedia.org/wiki/Database
+https://en.wikipedia.org/wiki/Distributed_computing
+https://en.wikipedia.org/wiki/Web_search_engine
+https://en.wikipedia.org/wiki/Information_retrieval
+https://en.wikipedia.org/wiki/Natural_language_processing
+https://en.wikipedia.org/wiki/Machine_learning
+https://en.wikipedia.org/wiki/Artificial_intelligence
+https://en.wikipedia.org/wiki/Data_structure
+https://en.wikipedia.org/wiki/Algorithm
+https://en.wikipedia.org/wiki/Software_engineering
+https://en.wikipedia.org/wiki/Cloud_computing
+https://en.wikipedia.org/wiki/Big_data
+https://en.wikipedia.org/wiki/NoSQL
+https://en.wikipedia.org/wiki/SQL
+https://en.wikipedia.org/wiki/Python_(programming_language)
+https://en.wikipedia.org/wiki/JavaScript
+https://en.wikipedia.org/wiki/Node.js
+https://en.wikipedia.org/wiki/React_(JavaScript_library)
+https://en.wikipedia.org/wiki/Docker_(software)
+
+# Documentación oficial
+https://www.python.org/
+https://nodejs.org/
+https://reactjs.org/
+https://www.mongodb.com/docs/
+https://www.postgresql.org/docs/
+
+# Tutoriales y recursos
+https://developer.mozilla.org/en-US/docs/Web
+https://www.w3schools.com/python/
+https://www.w3schools.com/sql/
+
+# Blogs de tecnología
+https://news.ycombinator.com/
+https://stackoverflow.blog/
+
+# Nota: El spider seguirá enlaces dentro de estas páginas
+# hasta alcanzar el límite de CLOSESPIDER_PAGECOUNT (500)
